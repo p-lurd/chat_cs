@@ -1,8 +1,9 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ChatsService } from './chats.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { CreateUserDto, UserDto } from 'src/users/dto/create-user.dto';
 
 @WebSocketGateway({
   cors: {
@@ -14,12 +15,44 @@ export class ChatsGateway {
   @WebSocketServer()
   server: Server;
 
-  handleConnection(client: any, ...args: any[]) {
-    console.log('Client connected:', client.id);
+  async handleConnection(client: Socket) {
+    try {
+      const userId = client.handshake.query.userId;
+      if (!userId) {
+        client.disconnect();
+        return;
+      }
+  
+      this.chatsService.joinRoom({client, userId});
+      console.log('Client connected:', client.id);
+      return
+    } catch (error) {
+      client.disconnect();
+      console.error('error connecting:', error)
+      return new Error(`unable to join room:` + error);
+      
+    }
+
+
+    // auto leave the room after 5mins timeout(can usecronjobs)
+    // when ticket is closed, all user leave room auto
   }
 
   handleDisconnect(client: any) {
-    console.log('Client disconnected:', client.id);
+    try {
+      const userId = client.handshake.query.userId;
+      if (!userId) {
+        client.disconnect();
+        return;
+      }
+      this.chatsService.leaveRoom({client, userId});
+      console.log('Client disconnected:', client.id);
+    } catch (error) {
+      client.disconnect();
+      console.error('error disconnecting:', error)
+      return new Error(`unable to leave room:` + error);
+    }
+
   }
 
   constructor(private readonly chatsService: ChatsService) {}

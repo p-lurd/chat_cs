@@ -23,6 +23,7 @@ export const UserSchema = new mongoose.Schema({
         enum: [ROLES.customer, ROLES.support, ROLES.admin],
         default: ROLES.customer
     },
+    roomId: { type: String, required: false },
     createdAt: { type: Date, default: Date.now },
 }, {
     timestamps: true,
