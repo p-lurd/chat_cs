@@ -35,6 +35,7 @@ export interface User {
     email: string;
     role: ROLES;
     createdAt: Date;
+    roomId: string;
 }
 
 // model name

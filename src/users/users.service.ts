@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserModelName, UserSchema, UserDocument } from './schemas/user.schema';
+import { uuid } from 'uuidv4';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +18,8 @@ export class UsersService {
       return user
     }
     // if not a user, create a new user
-    const newUser = await this.userModel.create({name, email})
+    const roomId = await uuid()
+    const newUser = await this.userModel.create({name, email, roomId})
     return newUser;
   }
 

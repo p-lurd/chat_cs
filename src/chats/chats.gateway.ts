@@ -18,6 +18,7 @@ export class ChatsGateway {
   async handleConnection(client: Socket) {
     try {
       const userId = client.handshake.query.userId;
+      console.log('userId: ' + userId);
       if (!userId) {
         client.disconnect();
         return;
@@ -58,8 +59,8 @@ export class ChatsGateway {
   constructor(private readonly chatsService: ChatsService) {}
 
   @SubscribeMessage('createChat')
-  create(@MessageBody() createChatDto: CreateChatDto) {
-    return this.chatsService.create(createChatDto);
+  create(@MessageBody() createChatDto: CreateChatDto, client: Socket) {
+    return this.chatsService.create(createChatDto, this.server);
   }
 
   @SubscribeMessage('findAllChats')
