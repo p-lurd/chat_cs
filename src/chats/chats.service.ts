@@ -27,19 +27,22 @@ export class ChatsService {
       userId,
     })
     // emit to users in the room
-    server.to(user.roomId).emit('newMessage',
-      {
-        message,
-        userId,
-        name: user.name
-      }
-    )
+    const data = {
+      message,
+      userId,
+      name: user.name
+    }
+    server.to(user.roomId).emit('newMessage', data)
     
     return chat;
   }
 
-  findAll() {
-    return `This action returns all chats`;
+  async findAll(userId) {
+    const messages = await this.chatModel
+      .find({userId: userId})
+      .sort({createdAt: -1})
+      .limit(20)
+    return messages;
   }
 
   findOne(id: number) {

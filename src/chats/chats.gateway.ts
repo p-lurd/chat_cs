@@ -60,12 +60,26 @@ export class ChatsGateway {
 
   @SubscribeMessage('createChat')
   create(@MessageBody() createChatDto: CreateChatDto, client: Socket) {
-    return this.chatsService.create(createChatDto, this.server);
+    try {
+      return this.chatsService.create(createChatDto, this.server);
+    } catch (error) {
+      console.error('error creating chat:', error)
+    }
+    
   }
 
   @SubscribeMessage('findAllChats')
-  findAll() {
-    return this.chatsService.findAll();
+  findAll(client: Socket) {
+    try {
+      const userId = client.handshake.query.userId;
+      if (!userId) {
+        client.disconnect();
+        return;
+      }
+      return this.chatsService.findAll(userId);
+    } catch (error) {
+      console.error('error creating chat:', error)
+    }
   }
 
   @SubscribeMessage('findOneChat')

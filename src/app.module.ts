@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChatsModule } from './chats/chats.module';
+import { AdminModule } from './admin/admin.module';
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from .env file
 
@@ -11,7 +12,7 @@ const DB_URL = process.env.DB_URL
 
 
 @Module({
-  imports: [MongooseModule.forRoot(DB_URL), UsersModule, ChatsModule],
+  imports: [MongooseModule.forRoot(DB_URL), UsersModule, ChatsModule, AdminModule],
   controllers: [AppController],
   providers: [AppService],
 })
