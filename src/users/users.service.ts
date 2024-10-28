@@ -5,22 +5,28 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserModelName, UserSchema, UserDocument } from './schemas/user.schema';
 import { uuid } from 'uuidv4';
+import { userNotCreated } from 'src/utilities/exceptions/exceptions';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(UserModelName) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto) {
-    const email = createUserDto.email
-    const name = createUserDto.name
-    const user = await this.userModel.findOne({ email: email})
-    if(user) {
-      return user
+    try {
+      const email = createUserDto.email
+      const name = createUserDto.name
+      const user = await this.userModel.findOne({ email: email})
+      if(user) {
+        return user
+      }
+      // if not a user, create a new user
+      const roomId = await uuid()
+      const newUser = await this.userModel.create({name, email, roomId})
+      return newUser;
+    } catch (error) {
+      throw new userNotCreated('100CU')
     }
-    // if not a user, create a new user
-    const roomId = await uuid()
-    const newUser = await this.userModel.create({name, email, roomId})
-    return newUser;
+    
   }
 
   findAll() {
