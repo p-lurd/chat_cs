@@ -1,6 +1,7 @@
 export class CreateUserDto {
     name: string;
     email: string;
+    password?: string;
 }
 
 export class UserDto {
@@ -9,4 +10,5 @@ export class UserDto {
     role: string;
     createdAt: Date;
     roomId: String;
+    password?: string;
 }

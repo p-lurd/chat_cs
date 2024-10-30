@@ -8,11 +8,11 @@ import { SupportModule } from './support/support.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const DB_URL = process.env.DB_URL
+const DB_URI = process.env.DB_URI
 
 
 @Module({
-  imports: [MongooseModule.forRoot(DB_URL), UsersModule, ChatsModule, SupportModule],
+  imports: [MongooseModule.forRoot(DB_URI), UsersModule, ChatsModule, SupportModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,19 +1,6 @@
 import * as mongoose from 'mongoose';
 import { ROLES } from '../utililities/user.enum';
-
-// export const UserSchema = new mongoose.Schema({
-//     // "_id": ObjectId(),
-//     "name": String,
-//     "email": {type: String, unique: true},
-//     "role": ROLES, // "customer" or "support" or "admin"
-//     "createdAt": {type: Date, default: Date.now()},
-//   }
-// )
-// export const User = { name: 'User' };
-// export type UserDocument = User & Document;
-  
-
-
+ 
 // Define the schema
 export const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -24,7 +11,7 @@ export const UserSchema = new mongoose.Schema({
         default: ROLES.customer
     },
     roomId: { type: String, required: false },
-    createdAt: { type: Date, default: Date.now },
+    password: { type: String, required: false}
 }, {
     timestamps: true,
 });
@@ -36,6 +23,7 @@ export interface User {
     role: ROLES;
     createdAt: Date;
     roomId: string;
+    password?: string;
 }
 
 // model name

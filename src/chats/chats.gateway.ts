@@ -16,27 +16,7 @@ export class ChatsGateway {
   server: Server;
 
   async handleConnection(client: Socket) {
-    try {
-      const userId = client.handshake.query.userId;
-      console.log('userId: ' + userId);
-      if (!userId) {
-        client.disconnect();
-        return;
-      }
-  
-      this.chatsService.joinRoom({client, userId});
-      console.log('Client connected:', client.id);
-      return
-    } catch (error) {
-      client.disconnect();
-      console.error('error connecting:', error)
-      return new Error(`unable to join room:` + error);
-      
-    }
-
-
-    // auto leave the room after 5mins timeout(can usecronjobs)
-    // when ticket is closed, all user leave room auto
+    this.chatsService.handleConnection(client);
   }
 
   handleDisconnect(client: any) {

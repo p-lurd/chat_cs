@@ -7,19 +7,50 @@ import { Chat, ChatDocument, ChatModelName, ChatSchema } from './schemas/chat.sc
 import { User, UserModelName, UserSchema, UserDocument  } from 'src/users/schemas/user.schema';
 import { UserDto } from 'src/users/dto/create-user.dto';
 import { uuid } from 'uuidv4';
+import { userNotFoundException } from 'src/utilities/exceptions/exceptions';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ChatsService {
   constructor(
     @InjectModel(ChatModelName) private readonly chatModel: Model<ChatDocument>,  // Inject Chat model
-    @InjectModel(UserModelName) private readonly userModel: Model<UserDocument>   // Inject User model
+    @InjectModel(UserModelName) private readonly userModel: Model<UserDocument>,   // Inject User model
+    private readonly usersService: UsersService, // Inject User service
   ) {}
+
+  async handleConnection(client){
+    try {
+      const userId = client.handshake.query.userId;
+      console.log('userId: ' + userId);
+      if (!userId) {
+        client.disconnect();
+        // throw a WS Exception
+        return;
+      }
+      const user = await this.usersService.getUserById(userId);
+      if(user.role === 'customer'){
+        this.createRoom({client, userId});
+        console.log('Client connected:', client.id);
+        return
+      }
+      
+    } catch (error) {
+      client.disconnect();
+      console.error('error connecting:', error)
+      return new Error(`unable to join room:` + error);
+      
+    }
+
+
+    // auto leave the room after 5mins timeout
+    // when ticket is closed, all user leave room auto
+  }
   async create(createChatDto: CreateChatDto, server) {
     console.log("newMesssage: ", createChatDto)
     const { message, userId} = createChatDto;
     const user = await this.userModel.findOne({ _id: userId})
     if(!user) {
-      throw new HttpException({message: "User not found", intCode: "CC100"}, HttpStatus.NOT_FOUND)
+      throw new userNotFoundException('CC100')
     }
     const chat = await this.chatModel.create({
       name: user.name,
@@ -58,13 +89,10 @@ export class ChatsService {
   }
 
 
-  async getUserById(userId){
-    const user: UserDto = await this.userModel.findOne({ id: userId})
-    return user
-  }
+  
 
   // Join the room
-  async joinRoom({client, userId}){
+  async createRoom({client, userId}){
     const user = await this.userModel.findOne({ _id: userId})
     if(!user){
       throw new HttpException({
@@ -96,7 +124,17 @@ export class ChatsService {
     }
 
     client.join(roomId);
+    // emmit the he has joined
+    client.to(roomId).emit('joined', true)
+  }
 
+  async joinRoom({client, roomId}){
+    try {
+      client.join(roomId)
+      client.to(roomId).emit('joined', true)
+    } catch (error) {
+      client.emit('error', { message: error.message });
+    }
   }
 
   async leaveRoom({client, userId}){
@@ -112,12 +150,13 @@ export class ChatsService {
     client.leave(roomId);
 
   }
+
   async closeRoom({client, roomId}){
     // Gets all connected socket to the room
     const room = client.sockets.adapter.rooms.get(roomId);
     
     if (room) {
-      // Loop through each client in the room and make them leave
+      // Loops through each client in the room and make them leave
       room.forEach(clientId => {
         const socket = client.sockets.sockets.get(clientId);
         if (socket) {

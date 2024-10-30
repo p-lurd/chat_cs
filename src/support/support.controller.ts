@@ -2,14 +2,22 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SupportService } from './support.service';
 import { CreateSupportDto } from './dto/create-support.dto';
 import { UpdateSupportDto } from './dto/update-support.dto';
+import { CreateTicketDto } from './dto/create-ticket.dto';
 
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
-  @Post('create-account')
-  create(@Body() createSupportDto: CreateSupportDto) {
-    return this.supportService.create(createSupportDto);
+
+  //.......................secure the endpoints...................
+  @Post('create_account')
+  createSupport(@Body() createSupportDto: CreateSupportDto) {
+    return this.supportService.createSupport(createSupportDto);
+  }
+
+  @Post('create_ticket')
+  createTicket(@Body() createTicketDto: CreateTicketDto) {
+    return this.supportService.createTicket(createTicketDto);
   }
 
   @Get()

@@ -1,11 +1,11 @@
-import { Injectable, Req, Response } from '@nestjs/common';
+import { HttpException,Injectable, Req, Response } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserModelName, UserSchema, UserDocument } from './schemas/user.schema';
 import { uuid } from 'uuidv4';
-import { userNotCreated } from 'src/utilities/exceptions/exceptions';
+import { userAlreadyExists, userNotCreated } from 'src/utilities/exceptions/exceptions';
 
 @Injectable()
 export class UsersService {
@@ -17,13 +17,16 @@ export class UsersService {
       const name = createUserDto.name
       const user = await this.userModel.findOne({ email: email})
       if(user) {
-        return user
+        throw new userAlreadyExists('101CU')
       }
       // if not a user, create a new user
       const roomId = await uuid()
       const newUser = await this.userModel.create({name, email, roomId})
       return newUser;
     } catch (error) {
+      if(error instanceof HttpException){
+        throw error
+        }
       throw new userNotCreated('100CU')
     }
     
@@ -45,5 +48,11 @@ export class UsersService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+
+  async getUserById(userId){
+    const user: UserDto = await this.userModel.findOne({_id: userId})
+    return user
   }
 }
