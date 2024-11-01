@@ -2,7 +2,7 @@ import { Controller, Post, Body, UseGuards, Request} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-guard.guard';
 import { User } from 'src/users/schemas/user.schema';
-import { unauthorisedUserException } from 'src/utilities/exceptions/exceptions';
+import { unauthorisedUserException } from 'src/utilities/exceptions/httpExceptions';
 
 @Controller('auth')
 export class AuthController {

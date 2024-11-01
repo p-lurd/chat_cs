@@ -5,7 +5,7 @@ import { CreateUserDto, UserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserModelName, UserSchema, UserDocument } from './schemas/user.schema';
 import { v4 as uuidv4 } from 'uuid';
-import { userAlreadyExists, userNotCreated } from 'src/utilities/exceptions/exceptions';
+import { failedUpdateException, userAlreadyExists, userNotCreated } from 'src/utilities/exceptions/httpExceptions';
 
 @Injectable()
 export class UsersService {
@@ -41,8 +41,17 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async updateRoom(updateUserDto: UpdateUserDto) {
+    const {_id, roomId} = updateUserDto
+    await this.userModel.updateOne({ _id: _id}, { roomId: roomId },function (err, docs) {
+      if (err){
+          console.log(err)
+          throw new failedUpdateException('CC102', 'user update failed: roomId')
+      }
+      else{
+          console.log("Updated Docs : ", docs);
+      }
+      })
   }
 
   remove(id: number) {

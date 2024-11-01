@@ -7,8 +7,10 @@ import { Chat, ChatDocument, ChatModelName, ChatSchema } from './schemas/chat.sc
 import { User, UserModelName, UserSchema, UserDocument  } from 'src/users/schemas/user.schema';
 import { UserDto } from 'src/users/dto/create-user.dto';
 import { uuid } from 'uuidv4';
-import { userNotFoundException } from 'src/utilities/exceptions/exceptions';
+import { userNotFoundException } from 'src/utilities/exceptions/httpExceptions';
 import { UsersService } from 'src/users/users.service';
+import { notFoundWsError, userNotCreatedWsException, userNotFoundWsException } from 'src/utilities/exceptions/WsException';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class ChatsService {
@@ -18,27 +20,32 @@ export class ChatsService {
     private readonly usersService: UsersService, // Inject User service
   ) {}
 
-  async handleConnection(client){
+  async handleConnection(client, server){
     try {
-      const userId = client.handshake.query.userId;
+      const userId = client?.handshake?.query?.userId;
       console.log('userId: ' + userId);
       if (!userId) {
         client.disconnect();
-        // throw a WS Exception
-        return;
+        throw new userNotCreatedWsException('100HC')
       }
       const user = await this.usersService.getUserById(userId);
       if(user && user.role === 'customer'){
-        this.createRoom({client, userId});
-        console.log('Client connected:', client.id);
+        if (client && client.to) {
+        const roomId = await this.createRoom({client, userId});
+        console.log('roomId: ' + roomId);
+        const {password, ...filteredUser} = user;
+        client.to(roomId).emit('notification', {message: 'we are here', user: filteredUser});
+        }
+        
         return
+      } else{
+        throw new userNotCreatedWsException('102HC')
       }
       
     } catch (error) {
+      console.log({error})
+      client.emit('error', error instanceof WsException ? error.getError() : 'Internal server error');
       client.disconnect();
-      console.error('error connecting:', error)
-      return new Error(`unable to join room:` + error);
-      
     }
 
 
@@ -50,7 +57,7 @@ export class ChatsService {
     const { message, userId} = createChatDto;
     const user = await this.userModel.findOne({ _id: userId})
     if(!user) {
-      throw new userNotFoundException('CC100')
+      throw new userNotFoundWsException('CC100')
     }
     const chat = await this.chatModel.create({
       name: user.name,
@@ -95,37 +102,21 @@ export class ChatsService {
   async createRoom({client, userId}){
     const user = await this.userModel.findOne({ _id: userId})
     if(!user){
-      throw new HttpException({
-        message: "User not found",
-        intCode: "CC101"
-      },
-      HttpStatus.NOT_FOUND 
-      )
+      throw new notFoundWsError('User not found', '101CC')
     }
     const roomId = user.roomId;
     if (!roomId) {
        // generate a new roomId
       const roomId = await uuid()
-      await this.userModel.updateOne({ _id: userId}, { roomId: roomId },function (err, docs) {
-        if (err){
-            console.log(err)
-            throw new HttpException(
-              {
-                message: "user update failed",
-                intCode: "CC102",
-              },
-              HttpStatus.INTERNAL_SERVER_ERROR
-            )
-        }
-        else{
-            console.log("Updated Docs : ", docs);
-        }
-        })
+
+      // --------------abstract it to userService
+      await this.usersService.updateRoom({roomId: roomId, _id: userId})
     }
 
     client.join(roomId);
     // emmit the he has joined
     client.to(roomId).emit('joined', true)
+    return roomId;
   }
 
   async joinRoom({client, roomId}){

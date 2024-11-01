@@ -12,7 +12,7 @@ import {
   unexpectedErrorException,
   userAlreadyExists,
   userNotCreated,
-} from 'src/utilities/exceptions/exceptions';
+} from 'src/utilities/exceptions/httpExceptions';
 import { ROLES } from 'src/users/utililities/user.enum';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { TicketDocument, TicketModelName } from './schema/ticket.schema';

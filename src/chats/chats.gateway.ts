@@ -15,8 +15,8 @@ export class ChatsGateway {
   @WebSocketServer()
   server: Server;
 
-  async handleConnection(client: Socket) {
-    this.chatsService.handleConnection(client);
+  async handleConnection(client: Socket){
+    this.chatsService.handleConnection(client, this.server);
   }
 
   handleDisconnect(client: any) {
