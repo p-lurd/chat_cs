@@ -11,7 +11,7 @@ export const UserSchema = new mongoose.Schema({
         default: ROLES.customer
     },
     roomId: { type: String, required: false },
-    password: { type: String, required: false}
+    password: { type: String}
 }, {
     timestamps: true,
 });
@@ -22,7 +22,7 @@ export interface User {
     email: string;
     role: ROLES;
     createdAt: Date;
-    roomId: string;
+    roomId?: string;
     password?: string;
 }
 

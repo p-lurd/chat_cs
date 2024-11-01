@@ -29,3 +29,21 @@ export class ticketNotCreatedException extends HttpException{
         super({message: 'ticket not created', intCode}, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }
+
+export class notFoundException extends HttpException{
+    constructor(intCode: string, message: string){
+        super({message, intCode}, HttpStatus.NOT_FOUND)
+    }
+}
+
+export class failedUpdateException extends HttpException{
+    constructor(intCode: string, message: string){
+        super({message, intCode}, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+}
+
+export class unauthorisedUserException extends HttpException{
+    constructor(intCode: string, message: string){
+        super({message, intCode}, HttpStatus.UNAUTHORIZED)
+    }
+}

@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto, UserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserModelName, UserSchema, UserDocument } from './schemas/user.schema';
-import { uuid } from 'uuidv4';
+import { v4 as uuidv4 } from 'uuid';
 import { userAlreadyExists, userNotCreated } from 'src/utilities/exceptions/exceptions';
 
 @Injectable()
@@ -13,14 +13,13 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const email = createUserDto.email
-      const name = createUserDto.name
+      const {email, name} = createUserDto
       const user = await this.userModel.findOne({ email: email})
       if(user) {
         throw new userAlreadyExists('101CU')
       }
       // if not a user, create a new user
-      const roomId = await uuid()
+      const roomId = await uuidv4()
       const newUser = await this.userModel.create({name, email, roomId})
       return newUser;
     } catch (error) {

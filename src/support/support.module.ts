@@ -10,5 +10,6 @@ import { TicketModelName, TicketSchema } from './schema/ticket.schema';
   imports: [MongooseModule.forFeature([{name: ChatModelName, schema: ChatSchema},{name: UserModelName, schema: UserSchema},{name: TicketModelName, schema: TicketSchema}])],
   controllers: [SupportController],
   providers: [SupportService],
+  exports: [SupportService]
 })
 export class SupportModule {}

@@ -28,7 +28,7 @@ export class ChatsService {
         return;
       }
       const user = await this.usersService.getUserById(userId);
-      if(user.role === 'customer'){
+      if(user && user.role === 'customer'){
         this.createRoom({client, userId});
         console.log('Client connected:', client.id);
         return
@@ -139,16 +139,14 @@ export class ChatsService {
 
   async leaveRoom({client, userId}){
     const user: UserDto = await this.userModel.findOne({ _id: userId})
-    const roomId = user.roomId;
-    if (!roomId) {
-
-      // generate a new roomId
-
-      console.log('roomId absent')
+    if (user && user.roomId) {
+      client.leave(user.roomId); 
+      console.log('user left room') 
+      return
     }
-    
-    client.leave(roomId);
-
+    // generate a new roomId
+    console.log('user or roomId absent')
+    return
   }
 
   async closeRoom({client, roomId}){
