@@ -1,13 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateSupportDto, LoginDto } from './dto/create-support.dto';
-import { UpdateSupportDto } from './dto/update-support.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDocument, UserModelName } from 'src/users/schemas/user.schema';
 import { uuid } from 'uuidv4';
 import {
   failedUpdateException,
-  notFoundException,
+  notFoundError,
   ticketNotCreatedException,
   unexpectedErrorException,
   userAlreadyExists,
@@ -79,7 +79,7 @@ export class SupportService {
         .sort({ createdAt: 1 }) // sorted in descending order
         .limit(20);
       if (!tickets) {
-        throw new notFoundException('105CS', 'no ticket found');
+        throw new notFoundError('105CS', 'no ticket found');
       }
       return tickets;
     } catch (error) {
@@ -94,7 +94,7 @@ export class SupportService {
     try {
       const ticket = await this.ticketModel.findOne({_id: id});
       if(!ticket) {
-        throw new notFoundException('107CS', 'no ticket found');
+        throw new notFoundError('107CS', 'no ticket found');
       }
       return ticket;
     } catch (error) {
@@ -105,20 +105,33 @@ export class SupportService {
     }
   }
 
-  async update(id: string, updateSupportDto: UpdateSupportDto) {
+  
+  async updateTicket(id: string, updateTicketDto: UpdateTicketDto) {
     try {
-      const updatedTicket = await this.ticketModel.findByIdAndUpdate({_id: id}, {state: updateSupportDto.state}, {new: true});
-      if(!updatedTicket) {
-        throw new failedUpdateException('108CS', 'ticket status not changed')
-      }
-      return updatedTicket;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new unexpectedErrorException('108CS');
+    const ticket = await this.ticketModel.findById(id);
+
+    if (!ticket) {
+        throw new notFoundError('108CS', 'ticket not found')
     }
+
+    if (updateTicketDto.state) {
+        ticket.state = updateTicketDto.state;
+    }
+
+    if (updateTicketDto.supportId) {
+        if (!ticket.supportIds.includes(updateTicketDto.supportId)) {
+            ticket.supportIds.push(updateTicketDto.supportId);
+        }
+    }
+    const updatedTicket = await ticket.save();
+    return updatedTicket;
+  } catch(error){
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    throw new unexpectedErrorException('108CS');
   }
+}
 
   remove(id: number) {
     return `This action removes a #${id} support`;

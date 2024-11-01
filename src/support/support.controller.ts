@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { SupportService } from './support.service';
 import { CreateSupportDto } from './dto/create-support.dto';
-import { UpdateSupportDto } from './dto/update-support.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-guard.guard';
 import { Role } from 'src/auth/roles.decorator';
@@ -40,8 +40,8 @@ export class SupportController {
 
   @Patch('ticket/:id')
   @Role('support', 'admin')
-  update(@Param('id') id: string, @Body() updateSupportDto: UpdateSupportDto) {
-    return this.supportService.update(id, updateSupportDto);
+  update(@Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
+    return this.supportService.updateTicket(id, updateTicketDto);
   }
 
   @Delete(':id')

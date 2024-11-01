@@ -30,7 +30,7 @@ export class ticketNotCreatedException extends HttpException{
     }
 }
 
-export class notFoundException extends HttpException{
+export class notFoundError extends HttpException{
     constructor(intCode: string, message: string){
         super({message, intCode}, HttpStatus.NOT_FOUND)
     }
