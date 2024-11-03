@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-guard.guard';
 import { User } from 'src/users/schemas/user.schema';
 import { unauthorisedUserException } from 'src/utilities/exceptions/httpExceptions';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {

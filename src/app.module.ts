@@ -6,7 +6,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ChatsModule } from './chats/chats.module';
 import { SupportModule } from './support/support.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config'; 
+import { ConfigModule, ConfigService } from '@nestjs/config'; 
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { WinstonLogger } from './utilities/logger/winston-logger.service';
+import * as redisStore from 'cache-manager-ioredis';
+import { CacheModule } from '@nestjs/cache-manager';
+
 
 
 
@@ -20,9 +26,21 @@ import { ConfigModule } from '@nestjs/config';
     UsersModule,
     ChatsModule,
     SupportModule,
-    AuthModule
+    AuthModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }]),
+    
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService, {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard,
+  },
+  WinstonLogger
+],
+exports: [WinstonLogger],
 })
 export class AppModule {}
