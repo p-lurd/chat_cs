@@ -22,6 +22,13 @@ import { CacheModule } from '@nestjs/cache-manager';
     ConfigModule.forRoot({
       isGlobal: true, // Makes ConfigModule globally available
     }),
+    CacheModule.register({
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      password: process.env.REDIS_PASSWORD,
+      ttl: 300,
+    }),
     MongooseModule.forRoot(process.env.DB_URI),
     UsersModule,
     ChatsModule,
@@ -31,6 +38,7 @@ import { CacheModule } from '@nestjs/cache-manager';
       ttl: 60000,
       limit: 10,
     }]),
+    
     
   ],
   controllers: [AppController],
